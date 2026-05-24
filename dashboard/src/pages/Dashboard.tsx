@@ -6,6 +6,8 @@ import Swal from 'sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
 import heroAsset from '../assets/hero.png'
 
+const API_URL = 'http://localhost:3333'
+
 export type EduPointsView = 'director' | 'home' | 'nfc' | 'attendance'
 
 type Checkin = {
@@ -39,34 +41,46 @@ type AlunoEncontrado = {
   turma?: { nome: string }
 }
 
+type Turma = {
+  id: string
+  nome: string
+}
+
 type AttendanceStatus = 'Presente' | 'Falta' | 'Justificada'
 
 const demoCheckins: Checkin[] = [
   { aluno: { id: 1, nome: 'Ricardo Santos', pontos: 340, turma: 'Engenharia de Software' }, emRisco: false, horario: '2026-05-13T09:41:00' },
   { aluno: { id: 2, nome: 'Ana Julia Oliveira', pontos: 328, turma: 'Arquitetura' }, emRisco: false, horario: '2026-05-13T09:40:00' },
-  { aluno: { id: 3, nome: 'Marcos Vinicius', pontos: 82, turma: 'Direito' }, emRisco: true, horario: '2026-05-13T09:39:00' },
-  { aluno: { id: 4, nome: 'Beatriz Lima', pontos: 301, turma: 'Economia' }, emRisco: false, horario: '2026-05-13T09:38:00' },
+  { aluno: { id: 3, nome: 'Daniel Ferreira', pontos: 82, turma: 'Direito' }, emRisco: true, horario: '2026-05-13T09:39:00' },
+  { aluno: { id: 4, nome: 'Elisa Ribeiro', pontos: 301, turma: 'Economia' }, emRisco: false, horario: '2026-05-13T09:38:00' },
 ]
 
 const demoRanking: AlunoRanking[] = [
   { id: 1, nome: 'Ana Silva', pontos: 980, turma: { nome: 'Eng. Computacao A' } },
   { id: 2, nome: 'Bruno Rocha', pontos: 942, turma: { nome: 'Medicina 4B' } },
-  { id: 3, nome: 'Carla Mendes', pontos: 918, turma: { nome: 'Psicologia Noite' } },
-  { id: 4, nome: 'Daniel Ferreira', pontos: 874, turma: { nome: 'Direito 2A' } },
+  { id: 3, nome: 'Kauã Caçula', pontos: 918, turma: { nome: 'Psicologia Noite' } },
+  { id: 4, nome: 'Felipe Eduardo', pontos: 874, turma: { nome: 'Direito 2A' } },
 ]
 
 const demoRisco: AlunoRisco[] = [
-  { id: 11, nome: 'Marcos Vinicius', turma: { nome: 'Direito 2A' } },
-  { id: 12, nome: 'Julia Torres', turma: { nome: 'Eng. Computacao A' } },
-  { id: 13, nome: 'Pedro Henrique', turma: { nome: 'Psicologia Noite' } },
+  { id: 11, nome: 'Wesley Batista', turma: { nome: 'Direito 2A' } },
+  { id: 12, nome: 'Juliana Salgado', turma: { nome: 'Eng. Computacao A' } },
+  { id: 13, nome: 'Angelo Garcia', turma: { nome: 'Psicologia Noite' } },
 ]
 
 const attendanceRows: Array<{ nome: string; matricula: string; status: AttendanceStatus; pontos: number }> = [
-  { nome: 'Ana Silva', matricula: '202300124', status: 'Presente', pontos: 980 },
-  { nome: 'Bruno Rocha', matricula: '202300189', status: 'Falta', pontos: 942 },
-  { nome: 'Carla Mendes', matricula: '202300255', status: 'Justificada', pontos: 918 },
-  { nome: 'Daniel Ferreira', matricula: '202300312', status: 'Presente', pontos: 874 },
-  { nome: 'Elisa Ribeiro', matricula: '202300418', status: 'Presente', pontos: 850 },
+  { nome: 'Erick Freitas', matricula: '202300124', status: 'Presente', pontos: 980 },
+  { nome: 'Amanda Greice', matricula: '202300189', status: 'Falta', pontos: 942 },
+  { nome: 'Yvens Henrich', matricula: '202300255', status: 'Justificada', pontos: 918 },
+  { nome: 'Emanuel Bastos', matricula: '202300312', status: 'Presente', pontos: 874 },
+  { nome: 'Ana Karoline', matricula: '202300418', status: 'Presente', pontos: 850 },
+  { nome: 'Gabriel José', matricula: '202300418', status: 'Presente', pontos: 840 },
+  { nome: 'Kauê Batista', matricula: '202300418', status: 'Presente', pontos: 840 },
+  { nome: 'Thiago Rafael', matricula: '202300418', status: 'Presente', pontos: 830 },
+  { nome: 'Alessandra Conceição', matricula: '202300418', status: 'Presente', pontos: 830 },
+  { nome: 'Monique Farias', matricula: '202300418', status: 'Presente', pontos: 820 },
+  { nome: 'Oziel Coelho ', matricula: '202300418', status: 'Presente', pontos: 820 },
+
 ]
 
 const navItems: Array<{ view: EduPointsView; label: string; icon: string; path: string }> = [
@@ -77,6 +91,15 @@ const navItems: Array<{ view: EduPointsView; label: string; icon: string; path: 
 ]
 
 const socket = io('http://localhost:3333', { autoConnect: false })
+
+function getResponseArray<T>(data: unknown): T[] {
+  return Array.isArray(data) ? data : []
+}
+
+function keepPreviousWhenEmpty<T>(data: unknown) {
+  const next = getResponseArray<T>(data)
+  return (previous: T[]) => (next.length > 0 ? next : previous)
+}
 
 function initials(nome: string) {
   return nome
@@ -114,13 +137,27 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
 
     const headers = { Authorization: `Bearer ${token}` }
 
-    axios.get('http://localhost:3333/checkin/risco', { headers })
-      .then((res) => setAlunosRisco(res.data))
-      .catch(() => setAlunosRisco(demoRisco))
+    axios.get(`${API_URL}/checkin/risco`, { headers })
+      .then((res) => setAlunosRisco(keepPreviousWhenEmpty<AlunoRisco>(res.data)))
+      .catch(() => setAlunosRisco((previous) => (previous.length > 0 ? previous : demoRisco)))
 
-    axios.get('http://localhost:3333/alunos/ranking/1', { headers })
-      .then((res) => setRanking(res.data))
-      .catch(() => setRanking(demoRanking))
+    axios.get(`${API_URL}/turmas`, { headers })
+      .then((turmasResponse) => {
+        const turmas = getResponseArray<Turma>(turmasResponse.data)
+        const primeiraTurma = turmas[0]
+
+        if (!primeiraTurma?.id) {
+          return null
+        }
+
+        return axios.get(`${API_URL}/alunos/ranking/${primeiraTurma.id}`, { headers })
+      })
+      .then((rankingResponse) => {
+        if (rankingResponse) {
+          setRanking(keepPreviousWhenEmpty<AlunoRanking>(rankingResponse.data))
+        }
+      })
+      .catch(() => setRanking((previous) => (previous.length > 0 ? previous : demoRanking)))
 
     socket.connect()
     socket.on('connect', () => setConectado(true))
@@ -266,10 +303,10 @@ function DirectorDashboard({
                 </div>
                 <div>
                   <strong>{checkin.aluno.nome}</strong>
-                  <span>{checkin.aluno.turma} • {new Date(checkin.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-                <i />
-              </article>
+                <span>{checkin.aluno.turma} • {new Date(checkin.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <i />
+            </article>
             ))}
           </div>
         </div>
@@ -279,16 +316,20 @@ function DirectorDashboard({
             <h2>Ranking de Turmas</h2>
           </div>
           <div className="ranking-list">
-            {ranking.slice(0, 4).map((aluno, index) => (
-              <article className={`rank-card rank-${index + 1}`} key={aluno.id}>
-                <span className="material-symbols-outlined">workspace_premium</span>
-                <div>
-                  <strong>{aluno.turma?.nome || aluno.nome}</strong>
-                  <small>{aluno.pontos} pontos acumulados</small>
-                </div>
-                <b>{index + 1}º</b>
-              </article>
-            ))}
+            {ranking.length > 0 ? (
+              ranking.slice(0, 4).map((aluno, index) => (
+                <article className={`rank-card rank-${index + 1}`} key={aluno.id}>
+                  <span className="material-symbols-outlined">workspace_premium</span>
+                  <div>
+                    <strong>{aluno.turma?.nome || aluno.nome}</strong>
+                    <small>{aluno.pontos} pontos acumulados</small>
+                  </div>
+                  <b>{index + 1}º</b>
+                </article>
+              ))
+            ) : (
+              <p className="empty-state">Nenhum ranking encontrado.</p>
+            )}
           </div>
         </div>
 
@@ -298,16 +339,20 @@ function DirectorDashboard({
             <span className="danger-text">Busca ativa</span>
           </div>
           <div className="risk-list">
-            {alunosRisco.map((aluno) => (
-              <article key={aluno.id}>
-                <div className="avatar danger">{initials(aluno.nome)}</div>
-                <div>
-                  <strong>{aluno.nome}</strong>
-                  <span>{aluno.turma?.nome || 'Turma'} • 3 faltas consecutivas</span>
-                </div>
-                <button type="button">Notificar</button>
-              </article>
-            ))}
+            {alunosRisco.length > 0 ? (
+              alunosRisco.map((aluno) => (
+                <article key={aluno.id}>
+                  <div className="avatar danger">{initials(aluno.nome)}</div>
+                  <div>
+                    <strong>{aluno.nome}</strong>
+                    <span>{aluno.turma?.nome || 'Turma'} • 3 faltas consecutivas</span>
+                  </div>
+                  <button type="button">Notificar</button>
+                </article>
+              ))
+            ) : (
+              <p className="empty-state">Nenhum aluno com faltas criticas.</p>
+            )}
           </div>
         </div>
       </section>
@@ -413,7 +458,7 @@ function NfcView({ token }: { token: string | null }) {
 
     if (token === 'edupoints-demo') {
       const confirmado = await confirmarPresenca(
-        { nome: 'Lucas Oliveira', matricula: '202600145', turma: { nome: 'Fisica II' } },
+        { nome: 'Erick Saraiva', matricula: '202600145', turma: { nome: 'Matemática' } },
         codigoNormalizado,
         origem,
       )
@@ -422,7 +467,7 @@ function NfcView({ token }: { token: string | null }) {
         await Swal.fire({
           ...swalTheme,
           title: 'Presença registrada!',
-          text: 'Modo demo: Lucas Oliveira recebeu +10 pontos.',
+          text: 'Modo demo: Erick Saraiva recebeu +10 pontos.',
           icon: 'success',
         })
         setCodigoManual('')
@@ -517,7 +562,7 @@ function NfcView({ token }: { token: string | null }) {
       </section>
 
       <section className="manual-actions">
-        <h2>Acoes manuais</h2>
+        <h2>Registro manual</h2>
         <div className="nfc-code-form">
           <div className="input-shell">
             <span className="material-symbols-outlined">badge</span>
@@ -543,8 +588,8 @@ function AttendanceView({ presencaGeral }: { presencaGeral: number }) {
     <main className="attendance-view">
       <section className="class-header">
         <div>
-          <h1>Engenharia de Software</h1>
-          <p>3º Ano - Periodo Matutino</p>
+          <h1>Ciência da Computação</h1>
+          <p>7º periodo - Noturno</p>
           <div>
             <span><span className="material-symbols-outlined">calendar_today</span>13 de Maio, 2026</span>
             <span><span className="material-symbols-outlined">schedule</span>08:00 - 10:00</span>

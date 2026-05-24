@@ -45,7 +45,7 @@ export default function Login() {
 
         <form className="glass-panel login-card" onSubmit={handleLogin}>
           <label className="field">
-            <span>E-mail acadêmico</span>
+            <span>E-mail</span>
             <div className="input-shell">
               <span className="material-symbols-outlined">mail</span>
               <input
@@ -89,7 +89,9 @@ export default function Login() {
       </section>
 
       <footer className="login-footer">
-        <p>© 2026 EduPoints Attendance System</p>
+        <p>© 2026 EduPoints</p>
+        <p>Sistema de controle de frequência</p>
+         
         <nav aria-label="Links institucionais">
           <a href="#" onClick={(event) => event.preventDefault()}>Políticas</a>
           <a href="#" onClick={(event) => event.preventDefault()}>Privacidade</a>

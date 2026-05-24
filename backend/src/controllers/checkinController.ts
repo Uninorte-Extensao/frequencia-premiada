@@ -49,19 +49,25 @@ export const registrarCheckin = async (req: Request, res: Response): Promise<any
     })
 
     io.emit('presenca:nova', {
-      aluno: {
-        id: aluno.id,
-        nome: aluno.nome,
-        pontos: alunoAtualizado.pontos,
-        turmaId: aluno.turma.id,
-      },
-      data: new Date().toISOString(),
-    })
+  aluno: {
+    id: aluno.id,
+    nome: aluno.nome,
+    pontos: alunoAtualizado.pontos,
+    turma: { nome: aluno.turma.nome },
+  },
+  emRisco: false,
+  data: new Date().toISOString(),
+})
 
     return res.status(201).json({
-      message: 'Presença registrada!',
-      pontos: alunoAtualizado.pontos
-    })
+  message: 'Presença registrada!',
+  pontos: alunoAtualizado.pontos,
+  aluno: {
+    id: aluno.id,
+    nome: aluno.nome,
+    pontos: alunoAtualizado.pontos,
+  }
+})
   } catch (error) {
     console.error(error);
     return res.status(500).json({ erro: 'Erro no servidor' })
