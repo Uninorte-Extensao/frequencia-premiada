@@ -58,18 +58,23 @@ export const listarAlunosPorTurma = async (req: Request, res: Response) => {
   }
 }
 
-// Buscar aluno por tag NFC (O "Bip" da chamada)
+// Buscar aluno por tag NFC ou matrícula (O "Bip" da chamada)
 export const buscarAlunoPorTag = async (req: Request, res: Response) => {
-  const nfc_uid = req.params.nfc_uid as string // Atualizado para nfc_uid
+  const codigo = req.params.nfc_uid as string
 
   try {
-    const aluno = await prisma.aluno.findUnique({
-      where: { nfc_uid },
+    const aluno = await prisma.aluno.findFirst({
+      where: {
+        OR: [
+          { nfc_uid: codigo },
+          { matricula: codigo },
+        ],
+      },
       include: { turma: true },
     })
 
     if (!aluno) {
-      return res.status(404).json({ erro: 'Tag NFC não encontrada no sistema' })
+      return res.status(404).json({ erro: 'Aluno não encontrado com este código' })
     }
 
     return res.json(aluno)

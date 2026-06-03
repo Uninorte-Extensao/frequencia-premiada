@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "acc3842b-8ea6-4bda-9595-c9844a520edc"
+      }
+    },
+    "android": {
+      "package": "com.ericksaraiva.dashboard"
+    }
+  }
+}

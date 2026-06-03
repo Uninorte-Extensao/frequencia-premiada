@@ -1283,3 +1283,460 @@ tbody tr:hover {
     gap: 20px;
   }
 }
+
+/* Reapplied dashboard/login refinements */
+.login-page {
+  background:
+    linear-gradient(90deg, rgba(77, 142, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(77, 142, 255, 0.05) 1px, transparent 1px),
+    radial-gradient(circle at 12% 16%, rgba(173, 198, 255, 0.16), transparent 18rem),
+    radial-gradient(circle at 88% 76%, rgba(74, 222, 128, 0.08), transparent 22rem),
+    linear-gradient(115deg, #080b10 0%, #10131a 48%, #151922 100%);
+  background-size: 56px 56px, 56px 56px, auto, auto, auto;
+  justify-content: center;
+  overflow: hidden;
+  padding: 56px 40px 112px;
+}
+
+.login-shell {
+  align-items: stretch;
+  display: grid;
+  gap: 64px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.82fr);
+  margin: 0 auto;
+  max-width: 1180px;
+  min-height: 560px;
+  width: 100%;
+}
+
+.login-brand-panel,
+.login-access-panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.login-brand-panel {
+  border-right: 1px solid rgba(173, 198, 255, 0.2);
+  padding-right: 64px;
+}
+
+.brand-stack {
+  align-items: center;
+  flex-direction: row;
+  gap: 18px;
+  margin-bottom: 72px;
+  text-align: left;
+}
+
+.brand-mark {
+  background: rgba(77, 142, 255, 0.12);
+  border: 1px solid rgba(173, 198, 255, 0.28);
+  border-radius: 16px;
+  color: var(--primary);
+  flex: 0 0 72px;
+  height: 72px;
+  width: 72px;
+}
+
+.brand-mark .material-symbols-outlined {
+  font-size: 36px;
+}
+
+.brand-kicker,
+.login-card-heading span {
+  color: var(--success);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.brand-stack h1 {
+  font-size: clamp(2.8rem, 6vw, 4.8rem);
+  font-weight: 900;
+  line-height: 0.95;
+}
+
+.login-statement p {
+  color: var(--on-surface);
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 900;
+  line-height: 1.08;
+  margin: 0;
+}
+
+.login-statement span {
+  color: var(--on-surface-variant);
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.65;
+  margin-top: 28px;
+  max-width: 480px;
+}
+
+.login-highlights {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 56px;
+  max-width: 560px;
+}
+
+.login-highlights div {
+  background: rgba(29, 32, 39, 0.58);
+  border: 1px solid rgba(173, 198, 255, 0.12);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.login-highlights strong,
+.login-highlights span {
+  display: block;
+}
+
+.login-highlights strong {
+  color: var(--primary);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.login-highlights span {
+  color: var(--on-surface-variant);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  margin-top: 4px;
+}
+
+.login-card {
+  gap: 24px;
+  padding: 36px;
+}
+
+.login-card-heading h2 {
+  color: var(--on-surface);
+  font-size: clamp(1.8rem, 4vw, 2.4rem);
+  line-height: 1.1;
+  margin: 0;
+}
+
+.field > span,
+.login-footnote,
+.password-field a {
+  font-size: 0.78rem;
+}
+
+.input-shell {
+  gap: 14px;
+  min-height: 56px;
+  padding: 0 16px;
+}
+
+.input-shell input {
+  font-size: 0.98rem;
+}
+
+.input-shell .material-symbols-outlined {
+  font-size: 22px;
+}
+
+.primary-action {
+  font-size: 1rem;
+  min-height: 56px;
+  text-transform: uppercase;
+}
+
+.primary-action .material-symbols-outlined {
+  font-size: 24px;
+}
+
+.login-footer {
+  flex-direction: row;
+  gap: 24px;
+  padding: 24px 40px;
+}
+
+.login-footer nav {
+  margin-left: auto;
+}
+
+.login-footer p,
+.login-footer a {
+  font-size: 0.82rem;
+}
+
+.nfc-view {
+  display: grid;
+  gap: 24px;
+}
+
+.nfc-header {
+  align-items: flex-end;
+  display: flex;
+  gap: 24px;
+  justify-content: space-between;
+}
+
+.nfc-header h1 {
+  color: var(--primary);
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  margin: 6px 0 0;
+}
+
+.nfc-header p {
+  color: var(--on-surface-variant);
+  margin: 8px 0 0;
+}
+
+.nfc-header > div > span,
+.nfc-session-chip,
+.nfc-class-summary span {
+  color: var(--on-surface-variant);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.nfc-session-chip {
+  align-items: center;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.26);
+  border-radius: 999px;
+  color: var(--success);
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  padding: 10px 14px;
+}
+
+.nfc-dashboard-layout {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 360px;
+}
+
+.manual-actions-primary {
+  gap: 14px;
+  min-height: 294px;
+}
+
+.manual-form-copy {
+  align-items: center;
+  background: rgba(77, 142, 255, 0.08);
+  border: 1px solid rgba(173, 198, 255, 0.14);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  padding: 13px;
+}
+
+.manual-form-copy > .material-symbols-outlined {
+  align-items: center;
+  background: var(--primary-container);
+  border-radius: 999px;
+  color: var(--on-primary-container);
+  display: inline-flex;
+  flex: 0 0 34px;
+  font-size: 20px;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.manual-form-copy strong,
+.manual-form-copy span {
+  display: block;
+}
+
+.manual-form-copy span {
+  color: var(--on-surface-variant);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+
+.manual-actions-primary .nfc-code-form {
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.manual-actions-primary .input-shell {
+  min-height: 50px;
+}
+
+.manual-actions-primary .input-shell input {
+  font-size: 1rem;
+}
+
+.manual-actions-primary button {
+  min-height: 42px;
+}
+
+.mini-stats {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.mini-stats .metric-card {
+  min-height: 130px;
+}
+
+.nfc-side-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.nfc-class-summary {
+  display: grid;
+  gap: 12px;
+}
+
+.nfc-class-summary div {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 1120px) {
+  .login-page {
+    overflow: auto;
+    padding: 40px 24px 120px;
+  }
+
+  .login-shell {
+    gap: 32px;
+    grid-template-columns: 1fr;
+    max-width: 680px;
+    min-height: 0;
+  }
+
+  .login-brand-panel {
+    border-bottom: 1px solid rgba(173, 198, 255, 0.18);
+    border-right: 0;
+    padding: 0 0 32px;
+  }
+
+  .nfc-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .login-page {
+    padding: 32px 16px 180px;
+  }
+
+  .brand-stack {
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+
+  .brand-mark {
+    flex-basis: 58px;
+    height: 58px;
+    width: 58px;
+  }
+
+  .brand-stack h1 {
+    font-size: clamp(2.25rem, 13vw, 3rem);
+  }
+
+  .login-statement p {
+    font-size: clamp(1.78rem, 9vw, 2.55rem);
+  }
+
+  .login-highlights {
+    grid-template-columns: 1fr;
+    margin-top: 28px;
+  }
+
+  .login-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+    padding: 24px 16px;
+  }
+
+  .login-footer nav {
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-left: 0;
+  }
+
+  .nfc-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .nfc-header h1 {
+    font-size: 1.7rem;
+  }
+
+  .nfc-header p {
+    font-size: 0.88rem;
+    line-height: 1.45;
+  }
+
+  .nfc-session-chip {
+    font-size: 0.68rem;
+    padding: 8px 10px;
+  }
+
+  .manual-actions-primary {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .manual-form-copy strong {
+    font-size: 0.9rem;
+  }
+
+  .manual-form-copy span {
+    font-size: 0.76rem;
+  }
+
+  .manual-actions-primary .input-shell {
+    min-height: 46px;
+  }
+
+  .manual-actions-primary .input-shell input,
+  .manual-actions-primary button,
+  .nfc-class-summary strong {
+    font-size: 0.9rem;
+  }
+
+  .mini-stats .metric-card {
+    min-height: 108px;
+  }
+
+  .metric-card strong {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .nfc-header h1 {
+    font-size: 1.45rem;
+  }
+
+  .nfc-header p,
+  .manual-form-copy span {
+    font-size: 0.72rem;
+  }
+
+  .manual-actions-primary {
+    padding: 14px;
+  }
+
+  .bottom-nav button {
+    font-size: 0.62rem;
+    min-width: 56px;
+  }
+}

@@ -27,26 +27,23 @@ type AlunoRisco = {
   turma: { nome: string }
 }
 
-type AlunoRanking = {
-  id: number
+type TurmaRanking = {
+  id: string
   nome: string
   pontos: number
-  turma: { nome: string }
+  totalAlunos?: number
 }
 
 type AlunoEncontrado = {
+  id?: string
   nome: string
   matricula?: string
   pontos?: number
   turma?: { nome: string }
 }
 
-type Turma = {
-  id: string
-  nome: string
-}
-
 type AttendanceStatus = 'Presente' | 'Falta' | 'Justificada'
+type AttendanceFilter = 'Todos' | AttendanceStatus
 
 const demoCheckins: Checkin[] = [
   { aluno: { id: 1, nome: 'Ricardo Santos', pontos: 340, turma: 'Engenharia de Software' }, emRisco: false, horario: '2026-05-13T09:41:00' },
@@ -55,11 +52,11 @@ const demoCheckins: Checkin[] = [
   { aluno: { id: 4, nome: 'Elisa Ribeiro', pontos: 301, turma: 'Economia' }, emRisco: false, horario: '2026-05-13T09:38:00' },
 ]
 
-const demoRanking: AlunoRanking[] = [
-  { id: 1, nome: 'Ana Silva', pontos: 980, turma: { nome: 'Eng. Computacao A' } },
-  { id: 2, nome: 'Bruno Rocha', pontos: 942, turma: { nome: 'Medicina 4B' } },
-  { id: 3, nome: 'Kauã Caçula', pontos: 918, turma: { nome: 'Psicologia Noite' } },
-  { id: 4, nome: 'Felipe Eduardo', pontos: 874, turma: { nome: 'Direito 2A' } },
+const demoRanking: TurmaRanking[] = [
+  { id: 'eng-computacao-a', nome: 'Eng. Computacao A', pontos: 980, totalAlunos: 32 },
+  { id: 'medicina-4b', nome: 'Medicina 4B', pontos: 942, totalAlunos: 28 },
+  { id: 'psicologia-noite', nome: 'Psicologia Noite', pontos: 918, totalAlunos: 30 },
+  { id: 'direito-2a', nome: 'Direito 2A', pontos: 874, totalAlunos: 27 },
 ]
 
 const demoRisco: AlunoRisco[] = [
@@ -121,10 +118,18 @@ function StatusChip({ status }: { status: AttendanceStatus }) {
   )
 }
 
+function Icon({ name, className = '' }: { name: string; className?: string }) {
+  return (
+    <span className={`material-symbols-outlined notranslate${className ? ` ${className}` : ''}`} translate="no" aria-hidden="true">
+      {name}
+    </span>
+  )
+}
+
 export default function Dashboard({ view }: { view: EduPointsView }) {
   const [checkins, setCheckins] = useState<Checkin[]>(demoCheckins)
   const [alunosRisco, setAlunosRisco] = useState<AlunoRisco[]>(demoRisco)
-  const [ranking, setRanking] = useState<AlunoRanking[]>(demoRanking)
+  const [ranking, setRanking] = useState<TurmaRanking[]>(demoRanking)
   const [conectado, setConectado] = useState(false)
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
@@ -141,22 +146,8 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
       .then((res) => setAlunosRisco(keepPreviousWhenEmpty<AlunoRisco>(res.data)))
       .catch(() => setAlunosRisco((previous) => (previous.length > 0 ? previous : demoRisco)))
 
-    axios.get(`${API_URL}/turmas`, { headers })
-      .then((turmasResponse) => {
-        const turmas = getResponseArray<Turma>(turmasResponse.data)
-        const primeiraTurma = turmas[0]
-
-        if (!primeiraTurma?.id) {
-          return null
-        }
-
-        return axios.get(`${API_URL}/alunos/ranking/${primeiraTurma.id}`, { headers })
-      })
-      .then((rankingResponse) => {
-        if (rankingResponse) {
-          setRanking(keepPreviousWhenEmpty<AlunoRanking>(rankingResponse.data))
-        }
-      })
+    axios.get(`${API_URL}/turmas/ranking`, { headers })
+      .then((res) => setRanking(keepPreviousWhenEmpty<TurmaRanking>(res.data)))
       .catch(() => setRanking((previous) => (previous.length > 0 ? previous : demoRanking)))
 
     socket.connect()
@@ -195,7 +186,7 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell notranslate" translate="no">
       <aside className="side-nav">
         <div className="side-brand">EduPoints</div>
         <div className="profile-block">
@@ -213,7 +204,7 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
               onClick={() => navigate(item.path)}
               type="button"
             >
-              <span className="material-symbols-outlined">{item.icon}</span>
+              <Icon name={item.icon} />
               {item.label}
             </button>
           ))}
@@ -224,7 +215,7 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
         <header className="topbar">
           <div>
             <button className="mobile-icon-button" type="button" aria-label="Menu">
-              <span className="material-symbols-outlined">menu</span>
+              <Icon name="menu" />
             </button>
             <strong>EduPoints</strong>
             <span className={`live-pill ${conectado || token === 'edupoints-demo' ? 'online' : ''}`}>
@@ -235,7 +226,7 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
           <div className="topbar-user">
             <span>{professor?.nome || 'Prof. Ricardo Silva'}</span>
             <button className="icon-button" onClick={handleLogout} type="button" aria-label="Sair">
-              <span className="material-symbols-outlined">logout</span>
+              <Icon name="logout" />
             </button>
           </div>
         </header>
@@ -261,7 +252,7 @@ export default function Dashboard({ view }: { view: EduPointsView }) {
             onClick={() => navigate(item.path)}
             type="button"
           >
-            <span className="material-symbols-outlined">{item.icon}</span>
+            <Icon name={item.icon} />
             <small>{item.label}</small>
           </button>
         ))}
@@ -278,7 +269,7 @@ function DirectorDashboard({
 }: {
   totalHoje: number
   alunosRisco: AlunoRisco[]
-  ranking: AlunoRanking[]
+  ranking: TurmaRanking[]
   checkins: Checkin[]
 }) {
   return (
@@ -299,14 +290,14 @@ function DirectorDashboard({
             {checkins.map((checkin) => (
               <article className={checkin.emRisco ? 'feed-item alert' : 'feed-item'} key={`${checkin.aluno.id}-${checkin.horario}`}>
                 <div className="feed-icon">
-                  <span className="material-symbols-outlined">{checkin.emRisco ? 'error' : 'nfc'}</span>
+                  <Icon name={checkin.emRisco ? 'error' : 'nfc'} />
                 </div>
                 <div>
                   <strong>{checkin.aluno.nome}</strong>
-                <span>{checkin.aluno.turma} • {new Date(checkin.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
-              <i />
-            </article>
+                  <span>{checkin.aluno.turma} • {new Date(checkin.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <i />
+              </article>
             ))}
           </div>
         </div>
@@ -317,12 +308,15 @@ function DirectorDashboard({
           </div>
           <div className="ranking-list">
             {ranking.length > 0 ? (
-              ranking.slice(0, 4).map((aluno, index) => (
-                <article className={`rank-card rank-${index + 1}`} key={aluno.id}>
-                  <span className="material-symbols-outlined">workspace_premium</span>
+              ranking.slice(0, 4).map((turma, index) => (
+                <article className={`rank-card rank-${index + 1}`} key={turma.id}>
+                  <Icon name="workspace_premium" />
                   <div>
-                    <strong>{aluno.turma?.nome || aluno.nome}</strong>
-                    <small>{aluno.pontos} pontos acumulados</small>
+                    <strong>{turma.nome}</strong>
+                    <small>
+                      {turma.pontos} pontos acumulados
+                      {turma.totalAlunos ? ` • ${turma.totalAlunos} alunos` : ''}
+                    </small>
                   </div>
                   <b>{index + 1}º</b>
                 </article>
@@ -366,7 +360,7 @@ function MetricCard({ label, value, detail, tone, icon }: { label: string; value
       <p>{label}</p>
       <strong>{value}</strong>
       <span>
-        <span className="material-symbols-outlined">{icon}</span>
+        <Icon name={icon} />
         {detail}
       </span>
     </article>
@@ -383,12 +377,12 @@ function HomeView({ navigate, handleLogout }: { navigate: (path: string) => void
 
       <section className="action-grid">
         <button className="action-card" onClick={() => navigate('/chamada')} type="button">
-          <span className="circle-icon nfc-glow material-symbols-outlined">nfc</span>
+          <Icon name="nfc" className="circle-icon nfc-glow" />
           <strong>Registrar Presenca</strong>
           <p>Inicie a leitura dos cartoes NFC dos alunos para validacao automatica.</p>
         </button>
         <button className="action-card secondary" onClick={() => navigate('/presencas')} type="button">
-          <span className="circle-icon material-symbols-outlined">analytics</span>
+          <Icon name="analytics" className="circle-icon" />
           <strong>Ver Presencas</strong>
           <p>Consulte historico, relatorios de faltas e estatisticas da turma.</p>
         </button>
@@ -403,7 +397,7 @@ function HomeView({ navigate, handleLogout }: { navigate: (path: string) => void
       </section>
 
       <button className="logout-button" onClick={handleLogout} type="button">
-        <span className="material-symbols-outlined">logout</span>
+        <Icon name="logout" />
         Sair
       </button>
     </main>
@@ -413,6 +407,7 @@ function HomeView({ navigate, handleLogout }: { navigate: (path: string) => void
 function NfcView({ token }: { token: string | null }) {
   const [codigoManual, setCodigoManual] = useState('')
   const [registrando, setRegistrando] = useState(false)
+  const [justificando, setJustificando] = useState(false)
 
   const swalTheme = {
     background: '#1d2027',
@@ -518,72 +513,199 @@ function NfcView({ token }: { token: string | null }) {
     }
   }
 
-  const solicitarTagNfc = async () => {
+  const justificarFalta = async () => {
     const resultado = await Swal.fire({
       ...swalTheme,
-      title: 'Tag NFC aproximada',
+      title: 'Justificar falta',
       input: 'text',
-      inputLabel: 'Confirme o código lido na tag',
-      inputPlaceholder: 'Ex: 04A1B2C3D4',
+      inputValue: codigoManual,
+      inputLabel: 'Codigo ou matricula do aluno',
+      inputPlaceholder: 'Ex: 202600145',
       showCancelButton: true,
-      confirmButtonText: 'Continuar',
+      confirmButtonText: 'Buscar aluno',
       cancelButtonText: 'Cancelar',
-      inputValidator: (value) => value.trim() ? null : 'Informe o código da tag.',
+      inputValidator: (value) => value.trim() ? null : 'Informe o codigo do aluno.',
     })
 
-    if (resultado.isConfirmed && resultado.value) {
-      await registrarPresenca(resultado.value, 'NFC')
+    if (!resultado.isConfirmed || !resultado.value) {
+      return
+    }
+
+    const codigoNormalizado = String(resultado.value).trim()
+
+    if (token === 'edupoints-demo') {
+      await Swal.fire({
+        ...swalTheme,
+        title: 'Falta justificada!',
+        text: 'Modo demo: a justificativa foi registrada para Erick Saraiva.',
+        icon: 'success',
+      })
+      setCodigoManual('')
+      return
+    }
+
+    setJustificando(true)
+    try {
+      const headers = { Authorization: `Bearer ${token}` }
+      const alunoResponse = await axios.get(
+        `${API_URL}/alunos/tag/${encodeURIComponent(codigoNormalizado)}`,
+        { headers },
+      )
+      const aluno = alunoResponse.data as AlunoEncontrado
+
+      if (!aluno.id) {
+        throw new Error('Aluno sem identificador.')
+      }
+
+      const detalhes = [
+        `Aluno: ${aluno.nome}`,
+        aluno.matricula ? `Matricula: ${aluno.matricula}` : '',
+        aluno.turma?.nome ? `Turma: ${aluno.turma.nome}` : '',
+      ].filter(Boolean).join('\n')
+
+      const confirmacao = await Swal.fire({
+        ...swalTheme,
+        title: 'Confirmar justificativa?',
+        text: detalhes,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Justificar falta',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+      })
+
+      if (!confirmacao.isConfirmed) {
+        return
+      }
+
+      await axios.post(
+        `${API_URL}/presencas/justificada`,
+        { alunoId: aluno.id, data: new Date().toISOString() },
+        { headers },
+      )
+
+      await Swal.fire({
+        ...swalTheme,
+        title: 'Falta justificada!',
+        text: `${aluno.nome} foi marcado como falta justificada.`,
+        icon: 'success',
+      })
+      setCodigoManual('')
+    } catch (error) {
+      const mensagem = axios.isAxiosError(error)
+        ? error.response?.data?.erro || 'Erro ao justificar falta.'
+        : 'Erro ao justificar falta.'
+
+      await Swal.fire({
+        ...swalTheme,
+        title: 'Nao foi possivel justificar',
+        text: mensagem,
+        icon: 'error',
+      })
+    } finally {
+      setJustificando(false)
     }
   }
 
   return (
     <main className="nfc-view">
-      <section className="hero-copy center">
-        <h1>Registro de Presenca</h1>
-        <p>Aproxime a tag do aluno</p>
-      </section>
-
-      <button className="nfc-button" type="button" aria-label="Escanear NFC" onClick={solicitarTagNfc} disabled={registrando}>
-        <span className="material-symbols-outlined">nfc</span>
-      </button>
-
-      <section className="scan-result panel">
-        <div className="avatar">LO</div>
+      <section className="nfc-header">
         <div>
-          <strong>Lucas Oliveira</strong>
-          <span><span className="material-symbols-outlined">check_circle</span> Check-in realizado</span>
+          <span>Chamada NFC</span>
+          <h1>Registro de Presenca</h1>
+          <p>Preencha o codigo do aluno para validar a presenca e atualizar o painel da aula.</p>
         </div>
-        <b>+10 pts</b>
+        <div className="nfc-session-chip">
+          <Icon name="edit_note" />
+          Registro manual
+        </div>
       </section>
 
-      <section className="mini-stats">
-        <MetricCard label="Presentes" value="24/30" tone="primary" detail="Aula em curso" icon="groups" />
-        <MetricCard label="Tempo restante" value="12:45" tone="neutral" detail="Fisica II" icon="schedule" />
-      </section>
-
-      <section className="manual-actions">
-        <h2>Registro manual</h2>
-        <div className="nfc-code-form">
-          <div className="input-shell">
-            <span className="material-symbols-outlined">badge</span>
-            <input
-              value={codigoManual}
-              onChange={(event) => setCodigoManual(event.target.value)}
-              placeholder="Código do aluno ou tag NFC"
-            />
+      <section className="nfc-dashboard-layout">
+        <section className="panel manual-actions manual-actions-primary">
+          <div className="section-title">
+            <h2>Registro manual</h2>
+            <span>Prioritario</span>
           </div>
-          <button type="button" onClick={() => registrarPresenca(codigoManual, 'Código')} disabled={registrando}>
-            <span className="material-symbols-outlined">person_search</span>
-            {registrando ? 'Registrando...' : 'Confirmar código'}
+
+          <div className="manual-form-copy">
+            <Icon name="badge" />
+            <div>
+              <strong>Identificacao do aluno</strong>
+              <span>Digite o codigo de matricula ou codigo NFC informado pelo aluno.</span>
+            </div>
+          </div>
+
+          <div className="nfc-code-form">
+            <label className="field">
+              <span>Codigo do aluno</span>
+              <div className="input-shell">
+                <Icon name="badge" />
+                <input
+                  value={codigoManual}
+                  onChange={(event) => setCodigoManual(event.target.value)}
+                  placeholder="Ex: 202600145"
+                />
+              </div>
+            </label>
+            <button type="button" onClick={() => registrarPresenca(codigoManual, 'Código')} disabled={registrando}>
+              <Icon name="person_search" />
+              {registrando ? 'Registrando...' : 'Registrar presenca'}
+            </button>
+          </div>
+
+          <button type="button" onClick={justificarFalta} disabled={justificando}>
+            <Icon name="history_edu" />
+            {justificando ? 'Justificando...' : 'Justificar falta'}
           </button>
-        </div>
-        <button type="button"><span className="material-symbols-outlined">history_edu</span>Justificar falta</button>
+        </section>
+
+        <aside className="nfc-side-panel">
+          <section className="mini-stats">
+            <MetricCard label="Presentes" value="24/30" tone="primary" detail="Aula em curso" icon="groups" />
+            <MetricCard label="Tempo restante" value="12:45" tone="neutral" detail="Fisica II" icon="schedule" />
+          </section>
+
+          <section className="panel nfc-class-summary">
+            <div>
+              <span>Turma</span>
+              <strong>Fisica II</strong>
+            </div>
+            <div>
+              <span>Sala</span>
+              <strong>Bloco B - 204</strong>
+            </div>
+            <div>
+              <span>Status</span>
+              <strong>Em andamento</strong>
+            </div>
+          </section>
+        </aside>
       </section>
     </main>
   )
 }
 
 function AttendanceView({ presencaGeral }: { presencaGeral: number }) {
+  const [filtroAtivo, setFiltroAtivo] = useState<AttendanceFilter>('Todos')
+  const filtros: AttendanceFilter[] = ['Todos', 'Presente', 'Falta', 'Justificada']
+  const linhasFiltradas = filtroAtivo === 'Todos'
+    ? attendanceRows
+    : attendanceRows.filter((row) => row.status === filtroAtivo)
+
+  const labels: Record<AttendanceFilter, string> = {
+    Todos: 'Todos',
+    Presente: 'Presentes',
+    Falta: 'Faltas',
+    Justificada: 'Justificadas',
+  }
+
+  const contarFiltro = (filtro: AttendanceFilter) => (
+    filtro === 'Todos'
+      ? attendanceRows.length
+      : attendanceRows.filter((row) => row.status === filtro).length
+  )
+
   return (
     <main className="attendance-view">
       <section className="class-header">
@@ -591,8 +713,8 @@ function AttendanceView({ presencaGeral }: { presencaGeral: number }) {
           <h1>Ciência da Computação</h1>
           <p>7º periodo - Noturno</p>
           <div>
-            <span><span className="material-symbols-outlined">calendar_today</span>13 de Maio, 2026</span>
-            <span><span className="material-symbols-outlined">schedule</span>08:00 - 10:00</span>
+            <span><Icon name="calendar_today" />13 de Maio, 2026</span>
+            <span><Icon name="schedule" />08:00 - 10:00</span>
           </div>
         </div>
         <article className="panel progress-card">
@@ -603,10 +725,16 @@ function AttendanceView({ presencaGeral }: { presencaGeral: number }) {
       </section>
 
       <section className="filter-row">
-        <button className="active" type="button">Todos ({attendanceRows.length})</button>
-        <button type="button">Presentes (3)</button>
-        <button type="button">Faltas (1)</button>
-        <button type="button">Justificadas (1)</button>
+        {filtros.map((filtro) => (
+          <button
+            className={filtroAtivo === filtro ? 'active' : ''}
+            key={filtro}
+            onClick={() => setFiltroAtivo(filtro)}
+            type="button"
+          >
+            {labels[filtro]} ({contarFiltro(filtro)})
+          </button>
+        ))}
       </section>
 
       <section className="panel table-panel">
@@ -620,8 +748,8 @@ function AttendanceView({ presencaGeral }: { presencaGeral: number }) {
             </tr>
           </thead>
           <tbody>
-            {attendanceRows.map((row) => (
-              <tr key={row.matricula}>
+            {linhasFiltradas.map((row) => (
+              <tr key={`${row.matricula}-${row.nome}`}>
                 <td>
                   <div className="student-cell">
                     <div className="avatar">{initials(row.nome)}</div>
@@ -635,6 +763,9 @@ function AttendanceView({ presencaGeral }: { presencaGeral: number }) {
             ))}
           </tbody>
         </table>
+        {linhasFiltradas.length === 0 ? (
+          <p className="empty-state">Nenhuma presença encontrada para este filtro.</p>
+        ) : null}
       </section>
     </main>
   )

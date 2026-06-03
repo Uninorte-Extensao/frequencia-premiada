@@ -17,13 +17,13 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={token ? '/dashboard' : '/login'} replace />} />
+      <Route path="/" element={<Navigate to={token ? '/inicio' : '/login'} replace />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dashboard" element={<ProtectedRoute view="director" />} />
       <Route path="/inicio" element={<ProtectedRoute view="home" />} />
       <Route path="/chamada" element={<ProtectedRoute view="nfc" />} />
       <Route path="/presencas" element={<ProtectedRoute view="attendance" />} />
-      <Route path="*" element={<Navigate to={token ? '/dashboard' : '/login'} replace />} />
+      <Route path="*" element={<Navigate to={token ? '/inicio' : '/login'} replace />} />
     </Routes>
   )
 }
