@@ -8,11 +8,14 @@ datasource db {
 }
 
 model Aluno {
-  id        String  @id @default(uuid())
-  nome      String
-  matricula String  @unique
-  nfc_uid   String? @unique
-  pontos    Int     @default(0)
+  id              String  @id @default(uuid())
+  nome            String
+  apelido         String? // NOVO (LGPD): Usado para o ranking público, ocultando o nome real
+  matricula       String  @unique
+  senha           String // NOVO: Necessário para o aluno fazer login no aplicativo
+  nfc_uid         String? @unique
+  pontos          Int     @default(0)
+  primeiro_acesso Boolean @default(true) // NOVO (LGPD): Força o aceite dos Termos no 1º login do app
 
   turma   Turma  @relation(fields: [turmaId], references: [id])
   turmaId String
