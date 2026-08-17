@@ -102,5 +102,8 @@ O sistema trata dados de menores de idade com base no **Art. 7, Inciso III da LG
 
 ---
 
+## 👨‍💻 Desenvolvedor
+Desenvolvido por **Erick Saraiva** (GitHub: [@ErickcSaraiva](https://github.com/ErickcSaraiva))
+
 ## 📄 Licença e Direitos Autorais
-Copyright (c) 2026 Erick Saraiva
+Copyright ® Erick Saraiva 2026
