@@ -90,7 +90,7 @@ eas build --platform android --profile preview
 | GET | /checkin/risco | Alunos em risco de evasão | JWT |
 | GET | /alunos/ranking/:turmaId | Ranking de pontos | JWT |
 | PUT | /presencas/:id | Editar presença com auditoria | JWT |
-| GET | /lgpd/info | Informações LGPD | ❌ |
+| GET | /lgpd/info | Informações LGPD | 
 | GET | /lgpd/alunos/:id/dados | Exportar dados (portabilidade) | JWT |
 | DELETE | /lgpd/alunos/:id | Anonimizar dados | JWT |
 
@@ -102,6 +102,5 @@ O sistema trata dados de menores de idade com base no **Art. 7, Inciso III da LG
 
 ---
 
-## 📄 Licença
-
-MIT © Erick Saraiva — 2026
+## 📄 Licença e Direitos Autorais
+Copyright (c) 2026 Erick Saraiva
