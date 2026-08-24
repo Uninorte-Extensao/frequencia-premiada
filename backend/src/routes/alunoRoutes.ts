@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { 
   cadastrarAluno, 
-  loginAluno,          // NOVO: Importando a função de login
+  loginAluno,          
   listarAlunosPorTurma, 
   buscarAlunoPorTag, 
   rankingPorTurma,

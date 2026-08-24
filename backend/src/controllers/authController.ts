@@ -59,7 +59,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Sucesso: Retorna 200 e Token
     const token = jwt.sign(
-      { id: professor.id, email: professor.email },
+      { id: professor.id, role: 'professor', email: professor.email },
       process.env.JWT_SECRET as string,
       { expiresIn: '8h' }
     )

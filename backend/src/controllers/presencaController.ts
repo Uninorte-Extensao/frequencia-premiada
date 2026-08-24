@@ -6,7 +6,7 @@ import { io } from '../server'
 export const editarPresenca = async (req: Request, res: Response) => {
   const { id } = req.params
   const { status, justificativa } = req.body
-  const professor = (req as any).professor
+  const professor = req.user
 
   try {
     const presencaExiste = await prisma.presenca.findUnique({
@@ -29,7 +29,12 @@ export const editarPresenca = async (req: Request, res: Response) => {
         status,
         editadoPor: professor.email,
       },
-      include: { aluno: true, turma: true },
+      include: {
+        aluno: {
+          select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+        },
+        turma: true,
+      },
     })
 
     // Se mudou para justificada, não desconta pontos
@@ -68,7 +73,7 @@ export const editarPresenca = async (req: Request, res: Response) => {
 // Lançar falta justificada para um aluno
 export const lancarFaltaJustificada = async (req: Request, res: Response) => {
   const { alunoId, data } = req.body
-  const professor = (req as any).professor
+  const professor = req.user
 
   try {
     const aluno = await prisma.aluno.findUnique({
@@ -87,7 +92,12 @@ export const lancarFaltaJustificada = async (req: Request, res: Response) => {
         editadoPor: professor.email,
         data: data ? new Date(data) : new Date(),
       },
-      include: { aluno: true, turma: true },
+      include: {
+        aluno: {
+          select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+        },
+        turma: true,
+      },
     })
 
     return res.status(201).json({
@@ -106,7 +116,11 @@ export const listarAuditoria = async (req: Request, res: Response) => {
       where: {
         editadoPor: { not: null },
       },
-      include: { aluno: true }, 
+      include: {
+        aluno: {
+          select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+        },
+      },
       orderBy: { data: 'desc' },
       take: 50,
     })
@@ -136,21 +150,25 @@ export const registrarPresenca = async (req: Request, res: Response) => {
     }
 
     // 2. Registra a presença oficial
-    const presenca = await prisma.presenca.create({
-      data: {
-        alunoId: aluno.id,
-        turmaId: aluno.turmaId,
-        status: 'presente',
-        data: new Date(),
-      },
-      include: { aluno: true },
-    })
-
-    // 3. Gamificação: Adiciona 10 pontos para o aluno que compareceu
-    await prisma.aluno.update({
-      where: { id: aluno.id },
-      data: { pontos: { increment: 10 } },
-    })
+    const [presenca] = await prisma.$transaction([
+      prisma.presenca.create({
+        data: {
+          alunoId: aluno.id,
+          turmaId: aluno.turmaId,
+          status: 'presente',
+          data: new Date(),
+        },
+        include: {
+          aluno: {
+            select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+          },
+        },
+      }),
+      prisma.aluno.update({
+        where: { id: aluno.id },
+        data: { pontos: { increment: 10 } },
+      }),
+    ])
 
     // 4. Aciona o WebSocket para atualizar o Dashboard
     io.emit('presenca:nova', presenca)
@@ -169,7 +187,9 @@ export const listarPresencas = async (req: Request, res: Response) => {
   try {
     const presencas = await prisma.presenca.findMany({
       include: {
-        aluno: true, // Isso traz o nome do aluno junto
+        aluno: {
+          select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+        },
       },
       orderBy: {
         data: 'desc', // Mostra as mais recentes primeiro

@@ -60,8 +60,14 @@ cd backend
 npm install
 cp .env.example .env   # configure DATABASE_URL e JWT_SECRET
 npx prisma migrate dev --name init
+npm run seed             # cria as contas de demonstração
 npm run dev
 ```
+
+Contas de demonstração:
+
+- Dashboard/professor: `professor@escola.com` / `123456`
+- App mobile/aluno: matrícula `ALUNO001` / `123456`
 
 ### Dashboard
 

@@ -15,8 +15,6 @@ router.post('/', autenticar, registrarCheckin)
 router.get('/', autenticar, listarTodasPresencas)
 router.get('/turma/:turmaId', autenticar, listarPresencasPorTurma)
 router.get('/risco', autenticar, listarAlunosEmRisco)
-
-// <-- NOVA ROTA AQUI
 router.post('/encerrar', autenticar, encerrarChamada)
 
 export default router

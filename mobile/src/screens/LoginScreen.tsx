@@ -6,17 +6,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 const API_URL = 'https://tavern-buzz-helpless.ngrok-free.dev'
 
 export default function LoginScreen({ navigation }: any) {
-  const [email, setEmail] = useState('')
+  const [matricula, setMatricula] = useState('')
   const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
 
   const onLogin = async () => {
-    if (!email || !senha) return Alert.alert('Atenção', 'Preencha email e senha.')
+    if (!matricula || !senha) return Alert.alert('Atenção', 'Preencha matrícula e senha.')
     setLoading(true)
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { email, senha })
+      const response = await axios.post(`${API_URL}/alunos/login`, { matricula, senha })
       await AsyncStorage.setItem('token', response.data.token)
-      await AsyncStorage.setItem('professor', JSON.stringify(response.data.professor))
+      await AsyncStorage.setItem('aluno', JSON.stringify(response.data.aluno))
       navigation.replace('MainTabs')
     } catch (error: any) {
       Alert.alert('Erro', error.response?.data?.erro || 'Falha ao autenticar')
@@ -30,8 +30,8 @@ export default function LoginScreen({ navigation }: any) {
       <Text style={styles.brand}>EduPoints</Text>
       <Text style={styles.subtitle}>Gestão de presença inteligente</Text>
       <View style={styles.card}>
-        <Text style={styles.label}>E-MAIL</Text>
-        <TextInput style={styles.input} placeholder="nome@instituicao.edu" placeholderTextColor="#6E7890" value={email} onChangeText={setEmail} autoCapitalize="none" />
+        <Text style={styles.label}>MATRÍCULA</Text>
+        <TextInput style={styles.input} placeholder="ALUNO001" placeholderTextColor="#6E7890" value={matricula} onChangeText={setMatricula} autoCapitalize="characters" />
         <Text style={styles.label}>SENHA</Text>
         <TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="#6E7890" value={senha} onChangeText={setSenha} secureTextEntry />
         <TouchableOpacity style={styles.button} onPress={onLogin} disabled={loading}>

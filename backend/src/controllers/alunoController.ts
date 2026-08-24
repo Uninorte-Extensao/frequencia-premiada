@@ -82,8 +82,8 @@ export const loginAluno = async (req: Request, res: Response) => {
 
     // Gera o Token JWT para o App (Dura 7 dias)
     const token = jwt.sign(
-      { id: aluno.id, matricula: aluno.matricula, turmaId: aluno.turmaId },
-      process.env.JWT_SECRET || 'segredo_padrao_edupoints',
+      { id: aluno.id, role: 'aluno', matricula: aluno.matricula, turmaId: aluno.turmaId },
+      process.env.JWT_SECRET as string,
       { expiresIn: '7d' }
     )
 

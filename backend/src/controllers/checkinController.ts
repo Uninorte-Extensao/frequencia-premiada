@@ -35,18 +35,19 @@ export const registrarCheckin = async (req: Request, res: Response): Promise<any
       return res.status(400).json({ erro: 'Aluno já registrou presença hoje' })
     }
 
-    const presenca = await prisma.presenca.create({
-      data: {
-        alunoId: aluno.id,
-        turmaId: aluno.turmaId,
-        status: 'presente',
-      },
-    })
-
-    const alunoAtualizado = await prisma.aluno.update({
-      where: { id: aluno.id },
-      data: { pontos: { increment: 10 } },
-    })
+    const [presenca, alunoAtualizado] = await prisma.$transaction([
+      prisma.presenca.create({
+        data: {
+          alunoId: aluno.id,
+          turmaId: aluno.turmaId,
+          status: 'presente',
+        },
+      }),
+      prisma.aluno.update({
+        where: { id: aluno.id },
+        data: { pontos: { increment: 10 } },
+      }),
+    ])
 
     io.emit('presenca:nova', {
   aluno: {
@@ -78,8 +79,10 @@ export const registrarCheckin = async (req: Request, res: Response): Promise<any
 export const listarTodasPresencas = async (req: Request, res: Response): Promise<any> => {
   try {
     const presencas = await prisma.presenca.findMany({
-      include: { 
-        aluno: true, 
+      include: {
+        aluno: {
+          select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+        },
         turma: true 
       },
       orderBy: { data: 'desc' }, 
@@ -97,7 +100,12 @@ export const listarPresencasPorTurma = async (req: Request, res: Response): Prom
   try {
     const presencas = await prisma.presenca.findMany({
       where: { turmaId: String(turmaId) },
-      include: { aluno: true, turma: true },
+      include: {
+        aluno: {
+          select: { id: true, nome: true, apelido: true, matricula: true, pontos: true },
+        },
+        turma: true,
+      },
       orderBy: { data: 'desc' },
     })
     return res.json(presencas)
@@ -110,7 +118,12 @@ export const listarPresencasPorTurma = async (req: Request, res: Response): Prom
 export const listarAlunosEmRisco = async (req: Request, res: Response): Promise<any> => {
   try {
     const alunos = await prisma.aluno.findMany({
-      include: {
+      select: {
+        id: true,
+        nome: true,
+        apelido: true,
+        matricula: true,
+        pontos: true,
         presencas: { orderBy: { data: 'desc' }, take: 3 },
         turma: true,
       },

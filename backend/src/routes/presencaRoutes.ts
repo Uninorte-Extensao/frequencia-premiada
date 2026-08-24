@@ -4,7 +4,7 @@ import {
   lancarFaltaJustificada, 
   listarAuditoria, 
   registrarPresenca,
-  listarPresencas // Importe a função nova aqui!
+  listarPresencas 
 } from '../controllers/presencaController'
 import { autenticar } from '../middlewares/authMiddleware'
 

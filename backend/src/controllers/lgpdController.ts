@@ -55,7 +55,7 @@ export const exportarDadosAluno = async (req: Request, res: Response) => {
 // Anonimizar dados de um aluno (Direito ao Esquecimento — LGPD Art. 18)
 export const anonimizarAluno = async (req: Request, res: Response) => {
   const { id } = req.params
-  const professor = (req as any).professor
+  const professor = req.user
 
   try {
     const aluno = await prisma.aluno.findUnique({
