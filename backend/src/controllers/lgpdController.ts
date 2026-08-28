@@ -13,10 +13,7 @@ export const exportarDadosAluno = async (req: Request, res: Response) => {
         turma: true,
         presencas: {
           include: {
-            turma: true,
-            professor: {
-              select: { nome: true, email: true }
-            }
+            turma: true
           },
           orderBy: { data: 'desc' }
         }
