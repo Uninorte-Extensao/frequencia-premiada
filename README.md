@@ -49,9 +49,89 @@ O sistema possui uma arquitetura orientada a eventos baseada inteiramente em **T
 ---
 ## ⚙️ Como Executar o Projeto Localmente
 
-Siga os passos abaixo para rodar o projeto na sua máquina. **Importante:** certifique-se de ter o [Node.js](https://nodejs.org/) e o [PostgreSQL](https://www.postgresql.org/) instalados.
+Use Node.js 20 e PostgreSQL 17 para manter o ambiente local próximo da CI.
 
 ### 1. Clonar o Repositório
+
 ```bash
-git clone [https://github.com/Uninorte-Extensao/frequencia-premiada.git](https://github.com/Uninorte-Extensao/frequencia-premiada.git)
+git clone https://github.com/Uninorte-Extensao/frequencia-premiada.git
 cd frequencia-premiada
+```
+
+### 2. Configurar e iniciar o backend
+
+Crie `backend/.env` a partir de `backend/.env.example` e ajuste a conexão do PostgreSQL. Depois execute:
+
+```bash
+cd backend
+npm ci
+npx prisma generate
+npx prisma migrate deploy
+npm run seed
+npm run dev
+```
+
+### 3. Iniciar o dashboard
+
+Em outro terminal:
+
+```bash
+cd dashboard
+npm ci
+npm run dev
+```
+
+### 4. Iniciar o mobile
+
+Em outro terminal:
+
+```bash
+cd mobile
+npm ci
+npm start
+```
+
+## ✅ Verificações de qualidade
+
+O workflow `.github/workflows/quality.yml` é executado em todo Pull Request direcionado à `main`. Ele cria três checks independentes e usa somente valores temporários no ambiente de CI; nenhum segredo do projeto é versionado.
+
+Antes de abrir um Pull Request, reproduza localmente as mesmas verificações.
+
+### Backend
+
+O banco configurado em `backend/.env` deve estar acessível e preparado com as migrações e o seed de teste.
+
+```bash
+cd backend
+npm ci
+npx prisma generate
+npx prisma migrate deploy
+npm run seed
+npm run build
+npm test
+```
+
+### Dashboard
+
+```bash
+cd dashboard
+npm ci
+npm run lint
+npm run build
+```
+
+### Mobile
+
+```bash
+cd mobile
+npm ci
+npm run typecheck
+```
+
+Todos os três checks precisam ficar verdes antes do merge. Depois que o workflow rodar pelo menos uma vez, um administrador deve configurar a proteção da branch `main` no GitHub e marcar estes checks como obrigatórios:
+
+- `backend-checks`
+- `dashboard-checks`
+- `mobile-checks`
+
+No GitHub, acesse **Settings → Branches → Add branch protection rule**, use o padrão `main`, habilite **Require a pull request before merging** e **Require status checks to pass before merging**, então selecione os três checks acima.
