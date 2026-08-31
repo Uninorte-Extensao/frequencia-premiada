@@ -13,8 +13,7 @@ import {
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect } from '@react-navigation/native'
-
-const API_URL = 'https://tavern-buzz-helpless.ngrok-free.dev'
+import { API_URL } from '../config/api'
 
 type StatusPresenca = 'presente' | 'falta' | 'justificada'
 

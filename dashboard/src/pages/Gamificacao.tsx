@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
-
-const API_URL = 'http://localhost:3333'
+import { API_URL } from '../config/api'
 
 interface Aluno {
   id: number
@@ -49,7 +48,7 @@ useEffect(() => {
     .then(res => res && setAlunos(res.data))
     .catch(console.error)
     .finally(() => setCarregando(false))
-}, [])
+}, [token])
 
   const niveis = ['Todos', 'Diamante', 'Ouro', 'Prata', 'Bronze']
 
@@ -138,7 +137,7 @@ useEffect(() => {
           <p style={{ color: '#64748b', textAlign: 'center', padding: 40 }}>Nenhum aluno neste nível.</p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {alunosFiltrados.map((aluno, _index) => {
+            {alunosFiltrados.map((aluno) => {
               const nivel = getNivel(aluno.pontos)
               const progresso = getProgresso(aluno.pontos)
               const temCert = getCertificado(aluno.pontos)

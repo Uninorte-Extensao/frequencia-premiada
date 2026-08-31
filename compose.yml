@@ -1,0 +1,37 @@
+services:
+  postgres:
+    image: postgres:17
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-frequencia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-frequencia_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-frequencia_premiada}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U ${POSTGRES_USER:-frequencia} -d ${POSTGRES_DB:-frequencia_premiada}
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-frequencia}:${POSTGRES_PASSWORD:-frequencia_dev}@postgres:5432/${POSTGRES_DB:-frequencia_premiada}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-troque-esta-chave-em-outros-ambientes}
+      PORT: 3333
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports:
+      - "${BACKEND_PORT:-3333}:3333"
+    command: >
+      sh -c "npx prisma migrate deploy && npm start"
+
+volumes:
+  postgres_data:

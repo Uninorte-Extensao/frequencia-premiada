@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native'
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
-
-const API_URL = 'https://tavern-buzz-helpless.ngrok-free.dev'
+import { API_URL } from '../config/api'
 
 export default function LoginScreen({ navigation }: any) {
   const [matricula, setMatricula] = useState('')
