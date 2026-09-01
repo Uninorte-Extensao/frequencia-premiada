@@ -194,3 +194,46 @@ docker compose up -d
 ```
 
 As informações do PostgreSQL são preservadas no volume Docker `postgres_data`.
+
+## ✅ Verificações de qualidade
+
+O workflow `.github/workflows/quality.yml` é executado em todo Pull Request direcionado à `main`. Ele cria três checks independentes e usa somente valores temporários no ambiente de CI; nenhum segredo do projeto é versionado.
+
+Antes de abrir um Pull Request, reproduza localmente as mesmas verificações.
+
+### Backend
+
+O banco configurado em `backend/.env` deve estar acessível e preparado com as migrações e o seed de teste.
+
+```bash
+cd backend
+npm ci
+npx prisma generate
+npx prisma migrate deploy
+npm run seed
+npm run build
+npm test
+```
+
+### Dashboard
+
+```bash
+cd dashboard
+npm ci
+npm run lint
+npm run build
+```
+
+### Mobile
+
+```bash
+cd mobile
+npm ci
+npm run typecheck
+```
+
+Todos os três checks precisam ficar verdes antes do merge. Depois que o workflow rodar pelo menos uma vez, um administrador deve configurar a proteção da branch `main` e marcar estes checks como obrigatórios:
+
+- `backend-checks`
+- `dashboard-checks`
+- `mobile-checks`
