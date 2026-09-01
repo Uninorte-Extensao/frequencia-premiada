@@ -56,8 +56,10 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3333
 
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`)
-})
+if (process.env.NODE_ENV !== 'test') {
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Servidor rodando na porta ${PORT}`)
+  })
+}
 
 export { io, app }
