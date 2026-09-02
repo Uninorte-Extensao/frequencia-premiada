@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { prisma } from '../prisma'
-import { io } from '../server'
+import { emitirEvento } from '../realtime'
 
 // 1. REGISTRAR CHECK-IN
 export const registrarCheckin = async (req: Request, res: Response): Promise<any> => {
@@ -49,7 +49,7 @@ export const registrarCheckin = async (req: Request, res: Response): Promise<any
       }),
     ])
 
-    io.emit('presenca:nova', {
+    emitirEvento('presenca:nova', {
   aluno: {
     id: aluno.id,
     nome: aluno.nome,
@@ -186,7 +186,7 @@ export const encerrarChamada = async (req: Request, res: Response): Promise<any>
       data: faltasParaCriar
     });
 
-    io.emit('chamada:encerrada', {
+    emitirEvento('chamada:encerrada', {
       turmaId,
       faltasRegistradas: alunosFaltosos.length,
       mensagem: `Foram registradas ${alunosFaltosos.length} faltas.`
