@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { prisma } from '../prisma'
-import { io } from '../server'
+import { emitirEvento } from '../realtime'
 
 // Exportar todos os dados de um aluno (Portabilidade — LGPD Art. 18)
 export const exportarDadosAluno = async (req: Request, res: Response) => {
@@ -13,10 +13,7 @@ export const exportarDadosAluno = async (req: Request, res: Response) => {
         turma: true,
         presencas: {
           include: {
-            turma: true,
-            professor: {
-              select: { nome: true, email: true }
-            }
+            turma: true
           },
           orderBy: { data: 'desc' }
         }
@@ -82,7 +79,7 @@ export const anonimizarAluno = async (req: Request, res: Response) => {
     // Log de auditoria LGPD
     console.log(`[LGPD] Dados do aluno ID ${id} anonimizados por ${professor.email} em ${new Date().toISOString()}`)
 
-    io.emit('lgpd:anonimizacao', {
+    emitirEvento('lgpd:anonimizacao', {
       alunoId: id,
       solicitadoPor: professor.email,
       data: new Date().toISOString(),

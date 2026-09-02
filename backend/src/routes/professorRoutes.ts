@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { cadastrarProfessor, loginProfessor } from '../controllers/professorController'
+import { cadastrarProfessor, loginProfessor } from '../controllers/authController'
 
 const router = Router()
 

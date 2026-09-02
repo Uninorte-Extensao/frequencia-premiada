@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { app } from '../src/server' // Note as chaves { } em volta do app!
+import { app } from '../src/app'
 import { describe, it, expect } from '@jest/globals' // Isso ensina ao TypeScript as palavras do Jest
 
 
