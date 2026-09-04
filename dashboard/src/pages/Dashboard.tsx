@@ -5,8 +5,7 @@ import { io } from 'socket.io-client'
 import Swal from 'sweetalert2'
 import 'sweetalert2/dist/sweetalert2.min.css'
 import heroAsset from '../assets/hero.png'
-
-const API_URL = 'http://localhost:3333'
+import { API_URL } from '../config/api'
 
 export type EduPointsView = 'director' | 'home' | 'nfc' | 'attendance'
 
@@ -87,7 +86,7 @@ const navItems: Array<{ view: EduPointsView; label: string; icon: string; path: 
   { view: 'attendance', label: 'Presencas', icon: 'analytics', path: '/presencas' },
 ]
 
-const socket = io('http://localhost:3333', { autoConnect: false })
+const socket = io(API_URL, { autoConnect: false })
 
 function getResponseArray<T>(data: unknown): T[] {
   return Array.isArray(data) ? data : []
@@ -474,7 +473,7 @@ function NfcView({ token }: { token: string | null }) {
     try {
       const headers = { Authorization: `Bearer ${token}` }
       const alunoResponse = await axios.get(
-        `http://localhost:3333/alunos/tag/${encodeURIComponent(codigoNormalizado)}`,
+        `${API_URL}/alunos/tag/${encodeURIComponent(codigoNormalizado)}`,
         { headers },
       )
 
@@ -485,7 +484,7 @@ function NfcView({ token }: { token: string | null }) {
       }
 
       await axios.post(
-        'http://localhost:3333/checkin',
+        `${API_URL}/checkin`,
         { tag_nfc: codigoNormalizado, disciplinaId: 1 },
         { headers },
       )

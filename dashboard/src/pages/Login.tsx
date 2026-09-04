@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { API_URL } from '../config/api'
 
 function Icon({ name }: { name: string }) {
   return (
@@ -23,7 +24,7 @@ export default function Login() {
     setCarregando(true)
 
     try {
-      const response = await axios.post('http://localhost:3333/auth/login', {
+      const response = await axios.post(`${API_URL}/auth/login`, {
         email,
         senha,
       })

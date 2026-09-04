@@ -7,8 +7,7 @@ import {
 import axios from 'axios'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import NfcManager, { NfcTech } from 'react-native-nfc-manager'
-
-const API_URL = 'https://tavern-buzz-helpless.ngrok-free.dev'
+import { API_URL } from '../config/api'
 
 type AlunoEncontrado = {
   nome: string

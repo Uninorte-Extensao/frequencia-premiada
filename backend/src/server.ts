@@ -17,17 +17,20 @@ dotenv.config()
 if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET não está definida nas variáveis de ambiente')
 }
-
+const corsOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
 const app = express()
 const httpServer = http.createServer(app)
 const io = new Server(httpServer, {
   cors: {
-    origin: 'http://localhost:5173',
+    origin: corsOrigins,
     methods: ['GET', 'POST'],
   },
 })
 
-app.use(cors())
+app.use(cors({ origin: corsOrigins }))
 app.use(express.json())
 app.use('/presencas', presencaRoutes)
 
