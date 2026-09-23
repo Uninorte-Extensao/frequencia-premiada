@@ -8,6 +8,7 @@ interface JwtUserPayload extends jwt.JwtPayload {
   role: Role
   matricula?: string
   email?: string
+  turmaId?: string
 }
 
 const rolesValidas: Role[] = ['aluno', 'professor']
@@ -40,6 +41,7 @@ export const autenticar = (req: Request, res: Response, next: NextFunction): voi
       role: decoded.role,
       matricula: decoded.matricula,
       email: decoded.email,
+      turmaId: decoded.turmaId,
     }
 
     next()

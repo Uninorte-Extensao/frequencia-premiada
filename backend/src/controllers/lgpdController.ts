@@ -1,10 +1,55 @@
 import { Request, Response } from 'express'
 import { prisma } from '../prisma'
 import { io } from '../server'
+import { TERMOS_PRIVACIDADE } from '../config/termosPrivacidade'
+
+export const registrarCienciaPrimeiroAcesso = async (req: Request, res: Response) => {
+  if (!req.user || req.user.role !== 'aluno') {
+    return res.status(403).json({ erro: 'Acesso permitido somente ao aluno' })
+  }
+
+  const { ciente, versao } = req.body
+  if (ciente !== true) return res.status(400).json({ erro: 'A ciência dos termos é obrigatória' })
+  if (versao !== TERMOS_PRIVACIDADE.versao) {
+    return res.status(409).json({ erro: 'A versão dos termos foi atualizada. Recarregue e tente novamente.' })
+  }
+
+  try {
+    const aluno = await prisma.aluno.update({
+      where: { id: req.user.id },
+      data: {
+        primeiro_acesso: false,
+        termo_versao: TERMOS_PRIVACIDADE.versao,
+        termo_ciente_em: new Date(),
+      },
+      select: {
+        id: true,
+        nome: true,
+        apelido: true,
+        matricula: true,
+        turmaId: true,
+        pontos: true,
+        primeiro_acesso: true,
+        termo_versao: true,
+        termo_ciente_em: true,
+        turma: { select: { id: true, nome: true } },
+      },
+    })
+
+    return res.json({ message: 'Ciência registrada com sucesso', aluno })
+  } catch {
+    return res.status(500).json({ erro: 'Não foi possível registrar a ciência dos termos' })
+  }
+}
 
 // Exportar todos os dados de um aluno (Portabilidade — LGPD Art. 18)
 export const exportarDadosAluno = async (req: Request, res: Response) => {
   const { id } = req.params
+
+  if (!req.user) return res.status(401).json({ erro: 'Usuário não autenticado' })
+  if (req.user.role === 'aluno' && req.user.id !== id) {
+    return res.status(403).json({ erro: 'Acesso não autorizado' })
+  }
 
   try {
     const aluno = await prisma.aluno.findUnique({
@@ -39,7 +84,7 @@ export const exportarDadosAluno = async (req: Request, res: Response) => {
         turma: aluno.turma.nome,
         pontos: aluno.pontos,
       },
-      historicoPrescencas: aluno.presencas.map(p => ({
+      historicoPresencas: aluno.presencas.map(p => ({
         data: p.data,
         status: p.status,
         //disciplina: p.disciplina.nome,
@@ -102,45 +147,7 @@ export const anonimizarAluno = async (req: Request, res: Response) => {
 // Listar log de acessos a dados sensíveis
 export const listarConsentimentos = async (req: Request, res: Response) => {
   try {
-    // Retorna informações sobre os dados coletados e base legal
-    return res.json({
-      sistema: 'EduPoints — Frequência Premiada',
-      responsavel: 'Escola Pública Municipal',
-      baseLegal: 'LGPD Art. 7, Inciso III — Execução de políticas públicas',
-      dadosColetados: [
-        {
-          dado: 'Nome do aluno',
-          finalidade: 'Identificação no sistema de frequência',
-          retencao: 'Período letivo + 5 anos',
-          sensivel: false,
-        },
-        {
-          dado: 'Tag NFC',
-          finalidade: 'Identificação física do aluno',
-          retencao: 'Período letivo',
-          sensivel: false,
-        },
-        {
-          dado: 'Registro de presença',
-          finalidade: 'Controle de frequência escolar obrigatório',
-          retencao: '5 anos conforme legislação educacional',
-          sensivel: false,
-        },
-        {
-          dado: 'Pontuação gamificada',
-          finalidade: 'Engajamento e redução de evasão',
-          retencao: 'Período letivo',
-          sensivel: false,
-        },
-      ],
-      direitosDoTitular: [
-        'Acesso aos dados (GET /lgpd/alunos/:id/dados)',
-        'Anonimização (DELETE /lgpd/alunos/:id)',
-        'Portabilidade (GET /lgpd/alunos/:id/dados)',
-        'Informação sobre compartilhamento',
-      ],
-      contatoDPO: 'dpo@escola.edu.br',
-    })
+    return res.json(TERMOS_PRIVACIDADE)
   } catch (error) {
     return res.status(500).json({ erro: 'Erro interno do servidor' })
   }

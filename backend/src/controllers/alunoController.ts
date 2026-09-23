@@ -68,7 +68,10 @@ export const loginAluno = async (req: Request, res: Response) => {
 
   try {
     // Busca o aluno no banco
-    const aluno = await prisma.aluno.findUnique({ where: { matricula } })
+    const aluno = await prisma.aluno.findUnique({
+      where: { matricula },
+      include: { turma: { select: { id: true, nome: true } } },
+    })
 
     if (!aluno) {
       return res.status(404).json({ erro: 'Aluno não encontrado' })
@@ -96,6 +99,35 @@ export const loginAluno = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error)
     return res.status(500).json({ erro: 'Erro interno ao fazer login' })
+  }
+}
+
+export const obterMeuPerfil = async (req: Request, res: Response) => {
+  if (!req.user || req.user.role !== 'aluno') {
+    return res.status(403).json({ erro: 'Acesso não autorizado' })
+  }
+
+  try {
+    const aluno = await prisma.aluno.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        nome: true,
+        apelido: true,
+        matricula: true,
+        turmaId: true,
+        pontos: true,
+        primeiro_acesso: true,
+        termo_versao: true,
+        termo_ciente_em: true,
+        turma: { select: { id: true, nome: true } },
+      },
+    })
+
+    if (!aluno) return res.status(404).json({ erro: 'Aluno não encontrado' })
+    return res.json(aluno)
+  } catch {
+    return res.status(500).json({ erro: 'Erro ao consultar o perfil' })
   }
 }
 
@@ -149,6 +181,11 @@ export const buscarAlunoPorTag = async (req: Request, res: Response) => {
 export const rankingPorTurma = async (req: Request, res: Response) => {
   const { turmaId } = req.params
 
+  if (!req.user) return res.status(401).json({ erro: 'Usuário não autenticado' })
+  if (req.user.role === 'aluno' && req.user.turmaId !== turmaId) {
+    return res.status(403).json({ erro: 'Acesso não autorizado ao ranking desta turma' })
+  }
+
   try {
     const alunos = await prisma.aluno.findMany({
       where: { turmaId: String(turmaId) },
@@ -161,7 +198,17 @@ export const rankingPorTurma = async (req: Request, res: Response) => {
       }
     })
 
-    return res.json(alunos)
+    return res.json(alunos.map(({ id, nome, apelido, pontos }) => ({
+      id,
+      nomePublico: apelido?.trim() || nome
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((parte) => parte[0])
+        .join('.')
+        .toUpperCase(),
+      pontos,
+    })))
   } catch (error) {
     return res.status(500).json({ erro: 'Erro interno do servidor ao gerar ranking' })
   }

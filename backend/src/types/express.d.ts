@@ -6,6 +6,7 @@ declare global {
         role: 'aluno' | 'professor'
         matricula?: string
         email?: string
+        turmaId?: string
       }
     }
   }
