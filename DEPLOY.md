@@ -1,111 +1,114 @@
-# Deploy do EduPoints: Render + Vercel
+# Deploy do EduPoints: Neon + Render + Vercel
 
-Este guia publica o backend, o PostgreSQL e o dashboard sem versionar senhas.
-O aplicativo mobile não faz parte deste deploy web.
+O PostgreSQL fica no Neon, a API Node.js no Render e o dashboard na Vercel.
+O aplicativo Android é distribuído separadamente. Nunca coloque senhas,
+tokens ou a URL real do banco no Git.
 
 ## Antes de começar
 
-1. Envie este repositório para o GitHub e mantenha `main` como branch principal.
-2. Confirme que os checks do GitHub Actions estão verdes.
-3. Não crie nem envie arquivos `.env` com credenciais reais.
+1. Mantenha a branch `main` e os checks do GitHub Actions atualizados.
+2. Tenha acesso ao projeto Neon, ao serviço da API no Render e ao projeto Vercel.
+3. Use uma URL de conexão do banco correto; confira projeto, branch e banco no Neon.
+4. Não execute `npm run seed` no banco publicado: o seed atual cria contas
+   demonstrativas com senha conhecida.
 
-## 1. Backend e PostgreSQL no Render
+## 1. Banco PostgreSQL no Neon
 
-1. Entre no Render e selecione **New > Blueprint**.
-2. Conecte o repositório `frequencia-premiada`.
-3. O Render localizará o arquivo `render.yaml` na raiz.
-4. Quando solicitar `CORS_ORIGINS`, informe temporariamente:
-
-   ```text
-   http://localhost:5173
-   ```
-
-5. Aplique o Blueprint e aguarde o banco e `frequencia-premiada-api` ficarem ativos.
-6. Copie a URL HTTPS exibida pelo Render, por exemplo:
-
-   ```text
-   https://frequencia-premiada-api.onrender.com
-   ```
-
-7. Valide no navegador ou terminal:
+1. Crie um projeto no Neon e selecione a branch de produção e o banco desejado.
+2. Em **Connect**, copie a connection string **direta**, com a opção de conexão
+   pooled desmarcada. Não cole essa URL em issues, PRs ou mensagens.
+3. Na pasta `backend`, aplique as migrations da versão que será publicada:
 
    ```bash
-   curl https://SUA-API.onrender.com/health
+   npm ci
+   read -r -s -p "URL do Neon: " neon_database_url
+   printf '\n'
+   DATABASE_URL="$neon_database_url" npx prisma migrate deploy
+   DATABASE_URL="$neon_database_url" npx prisma migrate status
    ```
 
-   A resposta esperada é `{"status":"ok"}`.
+4. Confirme a mensagem `Database schema is up to date!`.
 
-O comando de inicialização executa `prisma migrate deploy` antes de abrir o
-servidor. O banco não recebe dados demonstrativos automaticamente.
+O comando `migrate deploy` cria ou atualiza as tabelas; ele não cadastra
+alunos, turmas ou contas. O banco novo começa sem esses dados.
 
-## 2. Dashboard na Vercel
+### Primeira conta administrativa
 
-1. Entre na Vercel e selecione **Add New > Project**.
-2. Importe o mesmo repositório do GitHub.
-3. Configure **Root Directory** como `dashboard`.
-4. Confirme as configurações detectadas:
+O cadastro normal de professor exige um admin autenticado. Em um banco novo,
+crie a primeira conta admin por um procedimento pontual, com senha forte
+armazenada somente como hash bcrypt. Verifique que não existem contas na tabela
+`Professor` antes da criação. Não use o seed demonstrativo e não registre a
+senha ou seu hash na documentação.
 
-   | Campo | Valor |
-   | --- | --- |
-   | Framework Preset | Vite |
-   | Build Command | `npm run build` |
-   | Output Directory | `dist` |
-   | Install Command | `npm ci` |
+Depois de criar a conta, teste o login pelo dashboard. Cadastre os professores,
+turmas e alunos pelos fluxos autorizados da aplicação. Não repita a criação da
+primeira conta em um banco que já tenha usuários.
 
-5. Adicione a variável de ambiente em Production, Preview e Development:
+Ao terminar as operações locais com o banco, remova a URL da variável da sessão:
+
+```bash
+unset neon_database_url
+```
+
+## 2. API no Render
+
+O arquivo `render.yaml` configura o serviço `frequencia-premiada-api`, com
+diretório raiz `backend`, build do Prisma/TypeScript, comando
+`npm run start:render` e endpoint `/health`.
+
+1. Crie ou abra o Web Service no Render conectado à branch publicada.
+2. Em **Environment**, configure `DATABASE_URL` com a connection string do
+   **Neon correto**. Para um Blueprint novo, `sync: false` solicita o valor
+   durante a criação. Em um serviço existente, configure a variável manualmente.
+3. Configure `JWT_SECRET` com um segredo próprio e `CORS_ORIGINS` com a URL
+   exata do dashboard, sem barra final. Mantenha `NODE_ENV=production`.
+4. Se estiver preparando uma mudança de código, use **Save only** para guardar
+   variáveis sem iniciar um deploy antecipado; faça o deploy da versão correta
+   em seguida.
+5. Confira no log se `prisma migrate deploy` terminou e se a API iniciou.
+6. Verifique:
+
+   ```bash
+   curl https://frequencia-premiada-api.onrender.com/health
+   ```
+
+O endpoint `/health` verifica que o servidor responde. Para confirmar a
+conexão com o Neon, teste também o login de uma conta existente no banco.
+
+## 3. Dashboard na Vercel
+
+1. Importe o repositório na Vercel com **Root Directory** igual a `dashboard`.
+2. Use Vite, `npm ci` para instalar, `npm run build` para compilar e `dist`
+   como diretório de saída.
+3. Configure a variável de ambiente:
 
    ```dotenv
-   VITE_API_URL=https://SUA-API.onrender.com
+   VITE_API_URL=https://frequencia-premiada-api.onrender.com
    ```
 
-6. Clique em **Deploy** e copie a URL final HTTPS da Vercel.
+4. Faça o deploy e abra o dashboard.
+5. No Render, ajuste `CORS_ORIGINS` para a URL exata da Vercel, sem barra final.
+   Separe múltiplas origens confiáveis por vírgula; não use `*` em produção.
 
-O arquivo `dashboard/vercel.json` redireciona as rotas do React Router para
-`index.html`. Assim, abrir diretamente `/login`, `/inicio` ou `/presencas` não
-resulta em erro 404.
+O arquivo `dashboard/vercel.json` permite abrir diretamente as rotas internas
+do React Router sem erro 404.
 
-## 3. Fechar o CORS no Render
+## 4. Checklist de publicação
 
-1. Abra `frequencia-premiada-api` no Render.
-2. Entre em **Environment** e altere `CORS_ORIGINS` para a URL exata da Vercel,
-   sem barra no final:
+- GitHub Actions passou na versão publicada;
+- API no Render está **Live** e `/health` retorna HTTP 200;
+- logs não mostram erro de migration nem de conexão com o banco;
+- login da conta admin funciona pelo dashboard;
+- telas vazias refletem o banco novo, sem dados fictícios;
+- não há erro de CORS no navegador;
+- nenhuma senha, token, `.env` ou URL real de banco foi commitada.
 
-   ```dotenv
-   CORS_ORIGINS=https://SEU-PROJETO.vercel.app
-   ```
+## Limites e dados
 
-3. Salve e faça o redeploy.
-4. Se houver mais de um domínio confiável, separe-os por vírgula:
+O banco gratuito antigo do Render expira após 30 dias; o projeto publicado usa
+o Neon. Os planos gratuitos do Render e do Neon têm limites de uso que devem
+ser acompanhados nos respectivos painéis. O serviço web gratuito do Render
+pode adormecer por inatividade, causando demora na primeira requisição.
 
-   ```dotenv
-   CORS_ORIGINS=https://app.exemplo.com,https://SEU-PROJETO.vercel.app
-   ```
-
-Não use `*` em produção. URLs temporárias de Preview da Vercel também não
-são liberadas automaticamente; adicione somente as origens que a equipe deseja
-autorizar.
-
-## 4. Dados iniciais
-
-O banco publicado começa vazio. O plano gratuito não oferece Shell e o seed do
-projeto usa credenciais demonstrativas conhecidas, por isso ele não é executado
-automaticamente. Faça primeiro o deploy e valide a infraestrutura; a criação
-segura da primeira conta será uma etapa separada.
-
-## 5. Checklist de aceite
-
-- `GET /health` responde com HTTP 200;
-- login do professor funciona pela URL da Vercel;
-- atualizar uma rota interna não gera 404;
-- dashboard recebe eventos do Socket.IO;
-- console do navegador não apresenta erro de CORS;
-- nenhum `.env`, token, senha ou URL de banco foi commitado;
-- os logs do Render mostram as migrações aplicadas e o servidor iniciado.
-
-## Limites do plano gratuito
-
-O plano gratuito é adequado para demonstração acadêmica, não para uso real
-contínuo. O serviço pode adormecer por inatividade e o PostgreSQL gratuito do
-Render expira depois de 30 dias, não possui backups e tem limite de 1 GB. Para
-uma escola usar o sistema de verdade, escolha instâncias pagas e defina uma
-política de backup antes de cadastrar dados pessoais.
+Antes de usar dados pessoais reais em uma escola, defina responsáveis,
+controle de acesso, política de backup e um plano de hospedagem adequado.

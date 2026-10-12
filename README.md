@@ -105,5 +105,7 @@ separadas da documentação destinada aos usuários:
 
 ## 🌐 Publicação
 
-O repositório inclui configuração para publicar o dashboard na Vercel e o
-backend com PostgreSQL no Render. Consulte o passo a passo em [`DEPLOY.md`](DEPLOY.md).
+O dashboard é publicado na Vercel, a API Node.js no Render e o banco
+PostgreSQL no Neon. A API se conecta ao Neon pela variável `DATABASE_URL`,
+configurada como segredo no Render. Consulte o passo a passo em
+[`DEPLOY.md`](DEPLOY.md).
