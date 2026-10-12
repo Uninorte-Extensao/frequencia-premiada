@@ -16,6 +16,8 @@ model Aluno {
   nfc_uid         String? @unique
   pontos          Int     @default(0)
   primeiro_acesso Boolean @default(true) // NOVO (LGPD): Força o aceite dos Termos no 1º login do app
+  termo_versao    String?
+  termo_ciente_em DateTime?
 
   turma   Turma  @relation(fields: [turmaId], references: [id])
   turmaId String

@@ -5,6 +5,7 @@ import {
   cadastrarAluno,
   listarAlunosPorTurma,
   loginAluno,
+  obterMeuPerfil,
   rankingPorTurma,
   vincularNfc,
 } from '../controllers/alunoController'
@@ -18,6 +19,12 @@ const router = Router()
 
 // Login público: o aluno ainda não possui token JWT.
 router.post('/login', loginAluno)
+router.get(
+  '/me',
+  autenticar,
+  autorizarRole(['aluno']),
+  obterMeuPerfil,
+)
 
 // Histórico pessoal: somente o próprio aluno autenticado.
 router.get(
