@@ -6,6 +6,11 @@ import { io } from '../server'
 export const exportarDadosAluno = async (req: Request, res: Response) => {
   const { id } = req.params
 
+  if (!req.user) return res.status(401).json({ erro: 'Usuário não autenticado' })
+  if (req.user.role === 'aluno' && req.user.id !== id) {
+    return res.status(403).json({ erro: 'Acesso não autorizado' })
+  }
+
   try {
     const aluno = await prisma.aluno.findUnique({
       where: { id: String(id) },
