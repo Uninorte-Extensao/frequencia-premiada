@@ -4,8 +4,27 @@ import { io } from '../server'
 import { presencaEvento } from '../presencaEvento'
 
 // 1. REGISTRAR CHECK-IN
-export const registrarCheckin = async (req: Request, res: Response): Promise<any> => {
-  const nfc_uid = req.body.nfc_uid || req.body.tag_nfc;
+export const registrarCheckin = (req: Request, res: Response) =>
+  registrarPresenca(req, res, req.body?.nfc_uid || req.body?.tag_nfc)
+
+export const registrarCheckinTerminal = (req: Request, res: Response) => {
+  const { nfc_uid, turmaId } = req.body ?? {}
+  if (typeof nfc_uid !== 'string' || !/^(?:[0-9A-F]{8}|[0-9A-F]{14}|[0-9A-F]{20})$/.test(nfc_uid) ||
+      typeof turmaId !== 'string' || !turmaId.trim()) {
+    return res.status(400).json({ erro: 'UID NFC ou turma do terminal inválidos' })
+  }
+  return registrarPresenca(req, res, nfc_uid, turmaId)
+}
+
+const registrarPresenca = async (
+  req: Request, res: Response, nfc_uid: unknown, turmaTerminal?: string,
+): Promise<any> => {
+  if (!req.user) {
+    return res.status(401).json({ erro: 'Usuário não autenticado' })
+  }
+  if (req.user.role !== 'professor') {
+    return res.status(403).json({ erro: 'Acesso não autorizado' })
+  }
 
   if (!nfc_uid) {
     return res.status(400).json({ erro: 'Tag NFC ou Código não fornecido' })
@@ -18,7 +37,15 @@ export const registrarCheckin = async (req: Request, res: Response): Promise<any
     })
 
     if (!aluno) {
-      return res.status(404).json({ erro: 'Aluno não encontrado' })
+      return res.status(404).json({ erro: 'Aluno não encontrado', codigo: 'TAG_NAO_VINCULADA' })
+    }
+
+    if (aluno.turma.professorId !== req.user.id ||
+        (turmaTerminal !== undefined && aluno.turmaId !== turmaTerminal)) {
+      return res.status(403).json({
+        erro: 'Turma não autorizada para este check-in',
+        codigo: 'TURMA_NAO_AUTORIZADA',
+      })
     }
 
     const hoje = new Date()
@@ -33,7 +60,10 @@ export const registrarCheckin = async (req: Request, res: Response): Promise<any
     })
 
     if (checkinExiste) {
-      return res.status(400).json({ erro: 'Aluno já registrou presença hoje' })
+      return res.status(400).json({
+        erro: 'Aluno já registrou presença hoje',
+        codigo: 'PRESENCA_JA_REGISTRADA',
+      })
     }
 
     const [presenca, alunoAtualizado] = await prisma.$transaction([
